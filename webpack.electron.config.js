@@ -3,10 +3,11 @@ const miniCssExtractPlugin = require('mini-css-extract-plugin');
 const optimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const copyWebpackPlugin = require('copy-webpack-plugin');
 const { HotModuleReplacementPlugin } = require('webpack');
+const { spawn } = require('child_process');
+const path = require('path');
 
-const PAGE_TITLE =
-	'OnlineWardleyMaps - Draw Wardley Maps in seconds using this free online tool';
-const HTML_LOCATION = 'src/online/index.html';
+const PAGE_TITLE = 'Offline Wardley Maps';
+const HTML_LOCATION = 'src/app/index.html';
 
 function getRules(isProduction) {
 	let rules = [
@@ -93,16 +94,39 @@ function webpackBuilder({ isProduction }) {
 	process.env.NODE_ENV = mode;
 	process.env.BABEL_ENV = mode;
 
-	return {
-		entry: './src/online/index.js',
+	let r = {
+		entry: './src/app/index.js',
 		mode,
 		devtool,
 		watch,
 		plugins,
+		target: 'electron-renderer',
 		module: {
 			rules,
 		},
 	};
+
+	if (isProductionBuild == false) {
+		r.devServer = {
+			contentBase: path.resolve(__dirname, 'dist'),
+			stats: {
+				colors: true,
+				chunks: false,
+				children: false,
+			},
+			before() {
+				spawn('electron', ['.'], {
+					shell: true,
+					env: process.env,
+					stdio: 'inherit',
+				})
+					.on('close', () => process.exit(0))
+					.on('error', spawnError => console.error(spawnError));
+			},
+		};
+	}
+
+	return r;
 }
 
 module.exports = webpackBuilder;

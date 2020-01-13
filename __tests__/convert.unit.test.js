@@ -105,4 +105,112 @@ describe('Convert test suite', function() {
   
       });
 
+    test('should create map object with annotations property with an annotation with a single occurance', function() {
+
+        let actual = 'annotation 1 [.38,.4] Standardising power allows Kettles to evolve faster';
+        let result = new Convert().parse(actual);
+        
+        expect(result.annotations.length).toEqual(1);
+        expect(result.annotations[0].number).toEqual(1);
+        expect(result.annotations[0].occurances[0].visibility).toEqual(0.38);
+        expect(result.annotations[0].occurances[0].maturity).toEqual(0.4);
+        expect(result.annotations[0].text).toEqual('Standardising power allows Kettles to evolve faster');
+    });
+
+    test('should create map object with annotations property with an annotation with many occurances with no text', function() {
+
+      let actual = 'annotation 1 [[.38, .4],[0.44, 0.33]]';
+      let result = new Convert().parse(actual);
+      
+      expect(result.annotations.length).toEqual(1);
+      expect(result.annotations[0].number).toEqual(1);
+      expect(result.annotations[0].occurances[0].visibility).toEqual(0.38);
+      expect(result.annotations[0].occurances[0].maturity).toEqual(0.4);
+      expect(result.annotations[0].text).toEqual('');
+  });
+
+  test('should create map object with annotations property with an annotation with many occurances', function() {
+
+    let actual = 'annotation 1 [[.38, .4],[0.44, 0.33],[0.11, 0.22] ]    Standardising power allows Kettles to evolve faster';
+    let result = new Convert().parse(actual);
+    
+    expect(result.annotations.length).toEqual(1);
+    expect(result.annotations[0].number).toEqual(1);
+    expect(result.annotations[0].occurances[0].visibility).toEqual(0.38);
+    expect(result.annotations[0].occurances[0].maturity).toEqual(0.4);
+    expect(result.annotations[0].occurances[1].visibility).toEqual(0.44);
+    expect(result.annotations[0].occurances[1].maturity).toEqual(0.33);
+    expect(result.annotations[0].occurances.length).toEqual(3);
+    expect(result.annotations[0].text).toEqual('Standardising power allows Kettles to evolve faster');
+});
+
+test('should create map object with map style data', function() {
+
+  let actual = 'style wardley';
+  let result = new Convert().parse(actual);
+  
+  expect(result.presentation.style).toEqual('wardley');
+});
+
+test('should create map object with annotations positional data', function() {
+
+  let actual = 'annotations [.38, .4]';
+  let result = new Convert().parse(actual);
+  
+  expect(result.presentation.annotations.visibility).toEqual(0.38);
+  expect(result.presentation.annotations.maturity).toEqual(0.4);
+});
+
+test('should not create map object with annotations when incomplete', function() {
+
+  let actual = 'annotation ';
+  let result = new Convert().parse(actual);
+  
+  expect(result.annotations.length).toEqual(0);
+});
+
+test('should not create map object with annotations when incomplete', function() {
+
+  let actual = 'annotation 1';
+  let result = new Convert().parse(actual);
+  
+  expect(result.annotations.length).toEqual(0);
+});
+
+test('comments are ignored', function() {
+
+  let actual = '// hello world.';
+  let result = new Convert().parse(actual);
+  
+  expect(result.elements.length).toEqual(0);
+});
+
+test('comments are ignored', function() {
+
+  let actual = '/* hello world.\r\n* something\r\n*/' ;
+  let result = new Convert().parse(actual);
+  
+  expect(result.elements.length).toEqual(0);
+});
+
+test('component with little info is still made available to the map', function() {
+
+  let actual = 'component Foo []' ;
+  let result = new Convert().parse(actual);
+  
+  expect(result.elements.length).toEqual(1);
+  expect(result.elements[0].visibility).toEqual(0.95);
+  expect(result.elements[0].maturity).toEqual(0.05);
+});
+
+test('component with little info is still made available to the map', function() {
+
+  let actual = 'component Foo' ;
+  let result = new Convert().parse(actual);
+  
+  expect(result.elements.length).toEqual(1);
+  expect(result.elements[0].visibility).toEqual(0.95);
+  expect(result.elements[0].maturity).toEqual(0.05);
+});
+
 });
