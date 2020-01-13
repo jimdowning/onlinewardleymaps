@@ -1,0 +1,11 @@
+
+WardleyMap {
+  Map = Section*
+  Section = title | Component
+  title = "title "  (letter | " ")* endsection
+  Component = "component " letter* "[" float "," float "]" "evolve"? #endsection
+  float = digit? "." digit+
+  endsection = eol -- newline
+                       | ~any --eof
+  eol = ("\r"? "\n")  
+}
